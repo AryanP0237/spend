@@ -66,6 +66,7 @@ fieldset { border: 0; padding: 0; margin: 16px 0 0; display: flex; flex-wrap: wr
 .entry .val { text-align: right; font-weight: 600; }
 .entry .val small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
 .tag { font-size: 11px; color: var(--warn); border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
+.tag.muted { color: var(--muted); }
 .empty { padding: 24px; text-align: center; color: var(--muted); }
 
 /* month */
@@ -83,7 +84,6 @@ fieldset { border: 0; padding: 0; margin: 16px 0 0; display: flex; flex-wrap: wr
 .kv + .kv { border-top: 1px solid var(--line); }
 .cat-row { padding: 10px 16px; }
 .cat-row .kv { padding: 0; min-height: 0; }
-.setup { width: 100%; text-align: left; margin-bottom: 10px; color: var(--accent); font-weight: 600; }
 .lbl { width: 100%; font-size: 13px; color: var(--muted); }
 
 /* settings */
@@ -95,12 +95,26 @@ dialog { width: 100%; max-width: 560px; height: 100%; max-height: none; margin: 
 .srow .field:first-child { flex: 1; min-width: 0; }
 .srow .chk { border: 0; background: none; padding: 0 4px; font-size: 14px; gap: 6px; }
 
-#plus { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%);
-  width: 72px; height: 72px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-fg);
-  font-size: 40px; line-height: 1; box-shadow: 0 6px 20px rgb(0 0 0 / .25); }
-.toast { position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top)); transform: translateX(-50%); background: var(--fg); color: var(--bg);
-  padding: 10px 16px; border-radius: 12px; font-size: 15px; transition: opacity .3s; pointer-events: none; }
+/* solid bar so it never sits on top of list rows */
+.addbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+#plus { display: block; width: 100%; max-width: 528px; margin: 0 auto; min-height: 56px; border: 0; border-radius: 16px;
+  background: var(--accent); color: var(--accent-fg); font-size: 19px; font-weight: 700; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 2; transform: translateX(-50%); background: var(--fg); color: var(--bg);
+  padding: 10px 16px; border-radius: 12px; font-size: 15px; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+.toast button { border: 0; background: none; color: inherit; font-weight: 700; text-decoration: underline; margin-left: 10px; min-height: 32px; }
+.nudge { width: 100%; text-align: left; margin-bottom: 10px; color: var(--accent); font-weight: 600; }
 [hidden] { display: none !important; }
+
+/* onboarding */
+.dots { display: flex; gap: 6px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--accent); }
+.ob-title { font-size: 28px; line-height: 1.2; margin: 16px 0 8px; }
+.ob-list { padding-left: 20px; margin: 16px 0; }
+.ob-list li { margin-bottom: 12px; }
+.kv small { display: block; }
+.kv > span:last-child { white-space: nowrap; }
+.field.btn { margin-top: 10px; text-align: center; color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -109,26 +123,26 @@ dialog { width: 100%; max-width: 560px; height: 100%; max-height: none; margin: 
   <header>
     <button class="icon" id="prev" aria-label="Previous month">‹</button>
     <h1 id="monthTitle"></h1>
-    <span><button class="icon" id="next" aria-label="Next month">›</button><button class="icon" id="gear" aria-label="Settings">⚙︎</button></span>
+    <span><button class="icon" id="next" aria-label="Next month">›</button><button class="icon" id="help" aria-label="How it works">?</button><button class="icon" id="gear" aria-label="Settings">⚙︎</button></span>
   </header>
-  <button class="card pad setup" id="setup">Start here: set your starting balances in Settings →</button>
+  <button class="card pad nudge" id="nudge" hidden></button>
   <div class="card pad">
-    <div class="muted small">Left this month</div>
+    <div class="muted small">Left to spend this month</div>
     <div class="big num" id="left"></div>
     <div class="bar"><i id="budgetBar"></i></div>
     <div class="muted small num" id="budgetSub"></div>
   </div>
   <div class="grid2">
     <div class="card pad" id="weekCard"><div class="muted small">Cash left this week</div><b class="num" id="weekLeft"></b><div class="muted small num" id="weekSub"></div></div>
-    <div class="card pad"><div class="muted small">Impulse</div><b class="num" id="impTotal"></b><div class="muted small" id="impSub"></div></div>
+    <div class="card pad"><div class="muted small">Impulse buys</div><b class="num" id="impTotal"></b><div class="muted small" id="impSub"></div></div>
   </div>
-  <h2>By category</h2>
-  <div class="card"><ul class="list" id="byCat"></ul></div>
-  <h2>Accounts</h2>
+  <h2>Money you have now</h2>
   <div class="card"><ul class="list" id="accBal"></ul></div>
-  <h2>Entries</h2>
+  <h2>Spent by category</h2>
+  <div class="card"><ul class="list" id="byCat"></ul></div>
+  <h2>Everything you logged this month</h2>
   <div class="card"><ul class="list" id="entries"></ul></div>
-  <button id="plus" aria-label="Add expense">+</button>
+  <div class="addbar"><button id="plus">+ Add spending</button></div>
 </section>
 
 <dialog id="settings">
@@ -136,40 +150,49 @@ dialog { width: 100%; max-width: 560px; height: 100%; max-height: none; margin: 
     <header><h1>Settings</h1><button class="icon" value="cancel" formnovalidate aria-label="Close">✕</button></header>
     <h2>Budget</h2>
     <div class="card">
-      <label class="kv"><span>Monthly budget (€)</span><input class="field sm" id="sBudget" inputmode="decimal"></label>
+      <label class="kv"><span>Monthly budget, not counting rent (€)</span><input class="field sm" id="sBudget" inputmode="decimal"></label>
       <label class="kv"><span>Weekly cash allowance (€)</span><input class="field sm" id="sWeekly" inputmode="decimal"></label>
     </div>
-    <h2>Accounts · starting balance</h2>
+    <h2>Starting money</h2>
+    <p class="muted small">What you had when you set up Spend. The app takes away everything you log to show the money you have now. Only change this if you typed it wrong, or if the app no longer matches your real wallet or bank.</p>
     <div class="card" id="sAccs"></div>
     <h2>Categories</h2>
-    <p class="muted small">Untick "budget" for costs that shouldn't count against your monthly budget, like rent.</p>
+    <p class="muted small">Ticked = counts toward your monthly budget. Rent is unticked because it’s a fixed cost, not day-to-day spending.</p>
     <div class="card" id="sCats"></div>
     <button type="button" class="danger" id="addCat">+ Add category</button>
     <button class="primary" value="save">Save</button>
-    <h2>Backup</h2>
-    <p class="muted small">Your data lives only on this phone. Export a CSV now and then and keep it in Files or iCloud. <span id="lastBackup"></span></p>
+    <h2>Privacy and backup</h2>
+    <p class="muted small">Your spending is stored only on this phone. It is never sent anywhere and nobody else can see it. But if you lose your phone or delete the app, it’s gone, so save a backup now and then. <span id="lastBackup"></span></p>
     <div class="row">
-      <button type="button" class="field" id="exportBtn">Export CSV</button>
-      <label class="field" style="text-align:center">Import CSV<input type="file" id="importFile" accept=".csv,text/csv" hidden></label>
+      <button type="button" class="field" id="exportBtn">Save backup file</button>
+      <label class="field" style="text-align:center">Restore from backup<input type="file" id="importFile" accept=".csv,text/csv" hidden></label>
     </div>
+    <p class="muted small">“Save backup file” opens the share menu: choose <b>Save to Files</b> (iCloud Drive). To restore, tap “Restore from backup” and pick that file.</p>
   </form>
 </dialog>
 
 <section id="addView" hidden>
   <header><h1 id="addTitle">Add expense</h1><button class="icon" id="close" aria-label="Close">✕</button></header>
   <form id="form" autocomplete="off">
-    <label class="amt"><span id="curSym">€</span><input id="amt" inputmode="decimal" placeholder="0,00" aria-label="Amount" required></label>
+    <p class="muted small" id="addHint" hidden></p>
+    <div class="lbl">How much?</div>
+    <label class="amt"><span id="curSym">€</span><input id="amt" inputmode="decimal" placeholder="0.00" aria-label="Amount"></label>
     <div class="rate" id="rateRow" hidden>1 € = <input class="field" id="rate" inputmode="decimal" aria-label="Rupees per euro"> ₹ <span id="eurPreview" class="num"></span></div>
     <fieldset class="chips" id="cats" aria-label="Category"></fieldset>
     <fieldset class="seg" id="accs" aria-label="Account"></fieldset>
     <div class="row">
       <input class="field" type="date" id="date" required aria-label="Date">
-      <label class="chk"><input type="checkbox" id="impulse"> Impulse</label>
+      <label class="chk"><input type="checkbox" id="impulse"> Impulse <span class="muted small">(didn't plan it)</span></label>
     </div>
     <div class="row"><input class="field" id="note" placeholder="Note (optional)" aria-label="Note"></div>
     <button class="primary">Save</button>
     <button type="button" class="danger" id="del" hidden>Delete</button>
   </form>
+</section>
+
+<section id="onboard" hidden>
+  <header><button class="icon" id="obBack" aria-label="Back">‹</button><div class="dots" id="obDots"></div><button class="icon" id="obClose" aria-label="Close">✕</button></header>
+  <div id="obBody"></div>
 </section>
 
 <div class="toast" id="toast" style="opacity:0"></div>
@@ -190,19 +213,32 @@ navigator.storage?.persist?.();
 
 let editing = null; // expense id being edited, or null for new
 
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.style.opacity = 1; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.opacity = 0, 1800); }
+function toast(msg, undo) {
+  const t = $('toast'), hide = () => { t.style.opacity = 0; t.style.pointerEvents = 'none'; };
+  t.textContent = msg;
+  if (undo) t.appendChild(Object.assign(document.createElement('button'), { textContent: 'Undo', onclick: () => { undo(); hide(); } }));
+  t.style.opacity = 1; t.style.pointerEvents = undo ? 'auto' : 'none';
+  clearTimeout(toast.t); toast.t = setTimeout(hide, undo ? 5000 : 1800);
+}
 
-function show(view) { $('monthView').hidden = view !== 'month'; $('addView').hidden = view !== 'add'; scrollTo(0, 0); }
+function show(view) { for (const v of ['month', 'add', 'onboard']) $(v === 'month' ? 'monthView' : v === 'add' ? 'addView' : 'onboard').hidden = v !== view; scrollTo(0, 0); }
 
 // ---- add / edit ----
-function openForm(e) {
+// pre = "already paid before I started": counts in the month, but not against the balances typed at setup
+let pre = false;
+const backTo = () => pre ? (show('onboard'), renderOb()) : show('month');
+function openForm(e, past = false) {
   editing = e?.id ?? null;
-  $('addTitle').textContent = e ? 'Edit expense' : 'Add expense';
+  pre = e ? !!e.pre : past;
+  $('addTitle').textContent = e ? 'Edit expense' : pre ? 'Already paid' : 'Add expense';
+  $('addHint').hidden = !pre;
+  $('addHint').textContent = 'For things you paid before setting up Spend (even earlier today). They count toward this month’s spending, but won’t lower the money you entered as what you have now.';
   $('del').hidden = !e;
   const accId = e?.acc ?? st.settings.lastAcc ?? 'cash';
-  $('cats').innerHTML = st.categories.map(c => `<label><input type="radio" name="cat" value="${c.id}" ${c.id === e?.cat ? 'checked' : ''} required><span>${esc(c.name)}</span></label>`).join('');
+  $('cats').innerHTML = '<div class="lbl">What was it for?</div>' + st.categories.map(c => `<label><input type="radio" name="cat" value="${c.id}" ${c.id === e?.cat ? 'checked' : ''}><span>${esc(c.name)}</span></label>`).join('');
   $('accs').innerHTML = '<div class="lbl">Paid with</div>' + st.accounts.map(a => `<label><input type="radio" name="acc" value="${a.id}" ${a.id === accId ? 'checked' : ''}><span>${esc(a.name)}</span></label>`).join('');
-  $('amt').value = e ? String(e.amt).replace('.', ',') : '';
+  $('amt').value = e ? numStr(e.amt) : '';
+  delete $('del').dataset.armed; $('del').textContent = 'Delete';
   $('rate').value = e?.rate ?? st.settings.rate ?? '';
   $('date').value = e?.date ?? today();
   $('note').value = e?.note ?? '';
@@ -229,9 +265,9 @@ $('form').addEventListener('submit', ev => {
   const f = ev.target, acc = selectedAcc();
   const amt = parseAmount($('amt').value);
   if (!amt) return $('amt').focus(), toast('Enter an amount');
-  if (!f.cat.value) return toast('Pick a category');
+  if (!f.cat.value) return toast('Pick what it was for');
   const e = { id: editing ?? Date.now().toString(36), amt, acc: acc.id, cat: f.cat.value, date: $('date').value || today(),
-    note: $('note').value.trim(), impulse: $('impulse').checked };
+    note: $('note').value.trim(), impulse: $('impulse').checked, ...(pre && { pre: true }) };
   if (acc.cur === 'INR') {
     e.rate = parseAmount($('rate').value);
     if (!e.rate) return $('rate').focus(), toast('Enter the exchange rate');
@@ -239,17 +275,20 @@ $('form').addEventListener('submit', ev => {
   }
   st.settings.lastAcc = acc.id;
   st.expenses = editing ? st.expenses.map(x => x.id === editing ? e : x) : [...st.expenses, e];
-  save(); render(); show('month');
+  save(); render(); backTo();
   toast(`Saved ${fmt(round2(eur(st, e)))} · ${st.categories.find(c => c.id === e.cat).name}`);
 });
 
 $('del').addEventListener('click', () => {
-  if (!confirm('Delete this expense?')) return;
+  const btn = $('del');
+  if (!btn.dataset.armed) { btn.dataset.armed = 1; btn.textContent = 'Tap again to delete'; return; }
+  const gone = st.expenses.find(x => x.id === editing);
   st.expenses = st.expenses.filter(x => x.id !== editing);
-  save(); render(); show('month'); toast('Deleted');
+  save(); render(); backTo();
+  toast('Deleted', () => { st.expenses.push(gone); save(); render(); if (!$('onboard').hidden) renderOb(); });
 });
 $('plus').addEventListener('click', () => openForm());
-$('close').addEventListener('click', () => show('month'));
+$('close').addEventListener('click', backTo);
 
 // ---- month ----
 let ym = today().slice(0, 7);
@@ -261,13 +300,13 @@ function render() {
   const catName = id => st.categories.find(c => c.id === id)?.name ?? '?';
   const s = monthStats(st, ym), out = outsideBudget(st), budget = st.settings.budget;
   $('monthTitle').textContent = new Date(ym + '-01T12:00').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-  $('setup').hidden = st.accounts.some(a => a.start) || st.expenses.length > 0;
 
   $('left').textContent = fmt(s.left);
   $('left').classList.toggle('neg', s.left < 0);
   $('budgetBar').style.width = Math.min(100, budget ? s.budgetSpent / budget * 100 : 100) + '%';
   $('budgetBar').parentElement.classList.toggle('over', s.left < 0);
-  $('budgetSub').textContent = `${fmt(s.budgetSpent)} of ${fmt(budget)} spent` + (s.total !== s.budgetSpent ? ` · ${fmt(s.total)} incl. rent etc.` : '');
+  $('budgetSub').textContent = `Spent ${fmt(s.budgetSpent)} of your ${fmt(budget)} budget (rent not counted)`
+    + (s.total !== s.budgetSpent ? `. With rent: ${fmt(s.total)}.` : '.');
 
   const isNow = ym === today().slice(0, 7);
   $('weekCard').hidden = !isNow;
@@ -275,10 +314,13 @@ function render() {
     const w = weekCash(st, today());
     $('weekLeft').textContent = fmt(w.left);
     $('weekLeft').classList.toggle('neg', w.left < 0);
-    $('weekSub').textContent = `of ${fmt(st.settings.weekly)}`;
+    $('weekSub').textContent = `of ${fmt(st.settings.weekly)} · cash only, resets Monday`;
   }
+  const lb = st.settings.lastBackup ?? st.settings.since; // nudge 14 days after setup / last backup
+  $('nudge').hidden = !lb || lb > addDays(today(), -14);
+  $('nudge').textContent = st.settings.lastBackup ? 'Your last backup was over 2 weeks ago. Tap to save a new one →' : 'You haven’t saved a backup yet. Tap to save one →';
   $('impTotal').textContent = fmt(s.impulse);
-  $('impSub').textContent = s.total ? `${Math.round(s.impulse / s.total * 100)}% of spending` : 'this month';
+  $('impSub').textContent = s.total ? `unplanned, ${Math.round(s.impulse / s.total * 100)}% of this month` : 'things you didn’t plan';
 
   const cats = Object.entries(s.byCat).sort((a, b) => b[1] - a[1]), max = cats[0]?.[1] || 1;
   $('byCat').innerHTML = cats.length ? cats.map(([id, v]) => `<li class="cat-row">
@@ -289,35 +331,37 @@ function render() {
     <span class="num ${a.bal < 0 ? 'neg' : ''}">${fmt(a.bal, a.cur)}${a.cur === 'INR' && st.settings.rate ? ` <span class="muted small">≈ ${fmt(a.bal / st.settings.rate)}</span>` : ''}</span></li>`).join('');
 
   const list = sortExpenses(s.list);
-  $('entries').innerHTML = list.length ? list.map(e => {
-    const a = accOf(st, e.acc);
-    return `<li><button class="entry" data-id="${e.id}">
-      <div class="what"><div>${esc(catName(e.cat))}${e.impulse ? '<span class="tag">impulse</span>' : ''}</div>
+  $('entries').innerHTML = list.length ? list.map(entryRow).join('') : '<li class="empty">Nothing logged this month. Tap + when you spend money.</li>';
+}
+
+function entryRow(e) {
+  const a = accOf(st, e.acc), catName = st.categories.find(c => c.id === e.cat)?.name ?? '?';
+  return `<li><button class="entry" data-id="${e.id}">
+      <div class="what"><div>${esc(catName)}${e.impulse ? '<span class="tag">impulse</span>' : ''}${e.pre ? '<span class="tag muted">paid before setup</span>' : ''}</div>
         <div>${esc(e.date.slice(8))}/${esc(e.date.slice(5, 7))} · ${esc(a?.name ?? '?')}${e.note ? ' · ' + esc(e.note) : ''}</div></div>
       <div class="val num">${fmt(round2(eur(st, e)))}${a?.cur === 'INR' ? `<small>${fmt(e.amt, 'INR')}</small>` : ''}</div>
     </button></li>`;
-  }).join('') : '<li class="empty">No expenses this month. Tap + to add one.</li>';
 }
 
 // ---- settings ----
-const numStr = n => String(n).replace('.', ',');
+const numStr = n => Number.isInteger(n) ? String(n) : n.toFixed(2);
 function fillSettings() {
   $('sBudget').value = numStr(st.settings.budget);
   $('sWeekly').value = numStr(st.settings.weekly);
-  $('lastBackup').textContent = 'Last export: ' + (st.settings.lastBackup ?? 'never') + '.';
+  $('lastBackup').textContent = 'Last backup: ' + (st.settings.lastBackup ?? 'never') + '.';
   $('sAccs').innerHTML = st.accounts.map(a => `<div class="srow" data-id="${a.id}">
     <input class="field" name="name" value="${esc(a.name)}" aria-label="Account name">
     <input class="field sm" name="start" inputmode="decimal" value="${numStr(a.start)}" aria-label="Starting balance"><span class="muted">${a.cur === 'INR' ? '₹' : '€'}</span></div>`).join('');
   $('sCats').innerHTML = st.categories.map(c => `<div class="srow" data-id="${c.id}">
     <input class="field" name="name" value="${esc(c.name)}" aria-label="Category name">
-    <label class="chk"><input type="checkbox" name="budget" ${c.noBudget ? '' : 'checked'}> budget</label></div>`).join('');
+    <label class="chk"><input type="checkbox" name="budget" ${c.noBudget ? '' : 'checked'}> in budget</label></div>`).join('');
 }
+$('nudge').addEventListener('click', () => $('exportBtn').click());
 $('gear').addEventListener('click', () => { fillSettings(); $('settings').showModal(); });
-$('setup').addEventListener('click', () => $('gear').click());
 $('addCat').addEventListener('click', () => {
   $('sCats').insertAdjacentHTML('beforeend', `<div class="srow" data-id="c${Date.now().toString(36)}">
     <input class="field" name="name" placeholder="New category" aria-label="Category name">
-    <label class="chk"><input type="checkbox" name="budget" checked> budget</label></div>`);
+    <label class="chk"><input type="checkbox" name="budget" checked> in budget</label></div>`);
   $('sCats').lastElementChild.querySelector('input').focus();
 });
 $('settings').addEventListener('close', () => {
@@ -343,7 +387,7 @@ $('exportBtn').addEventListener('click', async () => {
     if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file] }); // iPhone: Save to Files
     else Object.assign(document.createElement('a'), { href: URL.createObjectURL(file), download: name }).click();
   } catch (err) { if (err.name === 'AbortError') return; throw err; }
-  st.settings.lastBackup = today(); save(); fillSettings();
+  st.settings.lastBackup = today(); save(); fillSettings(); render();
 });
 $('importFile').addEventListener('change', async ev => {
   const f = ev.target.files[0]; ev.target.value = '';
@@ -351,7 +395,7 @@ $('importFile').addEventListener('change', async ev => {
   try {
     const { st: next, skipped } = fromCSV(await f.text());
     if (!confirm(`Replace ALL current data with ${next.expenses.length} expenses from ${f.name}?` + (skipped ? `\n(${skipped} unreadable rows will be skipped)` : ''))) return;
-    st = { ...next, settings: { ...next.settings, lastBackup: st.settings.lastBackup } };
+    st = { ...next, settings: { ...next.settings, lastBackup: st.settings.lastBackup, onboarded: true } };
     save(); render(); fillSettings(); toast('Imported');
   } catch (err) { alert(err.message); }
 });
@@ -360,7 +404,93 @@ $('entries').addEventListener('click', ev => {
   if (b) openForm(st.expenses.find(x => x.id === b.dataset.id));
 });
 
+// ---- first-run walkthrough (also the "?" help, which opens on the last step) ----
+let obStep = 0;
+const OB_STEPS = [
+  () => `<h1 class="ob-title">Hi! This is Spend.</h1>
+    <p>It helps you see where your money goes.</p>
+    <ul class="ob-list">
+      <li>Log what you spend in a few seconds.</li>
+      <li>See how much you can still spend this month and this week.</li>
+      <li>Everything stays on this phone. No account, no login.</li>
+    </ul>
+    <p class="muted small">Setup takes about a minute.</p>
+    <button class="primary" data-ob="next">Let’s set it up</button>`,
+  () => `<h1 class="ob-title">How much money do you have right now?</h1>
+    <p class="muted">Count the cash in your wallet and check your banking apps. Type 0 if you don’t use one.</p>
+    <div class="card">${st.accounts.map(a => `<label class="kv"><span>${esc(a.name)}</span>
+      <span><input class="field sm" data-acc="${a.id}" inputmode="decimal" placeholder="0" value="${a.start ? numStr(a.start) : ''}"> ${a.cur === 'INR' ? '₹' : '€'}</span></label>`).join('')}</div>
+    ${st.accounts.some(a => a.cur === 'INR') ? `<div class="card" style="margin-top:10px"><label class="kv"><span>How many rupees is 1 euro?<small class="muted">Google “EUR to INR”. Used to show rupees in euros.</small></span>
+      <span><input class="field sm" id="obRate" inputmode="decimal" placeholder="e.g. 98" value="${st.settings.rate ? numStr(st.settings.rate) : ''}"> ₹</span></label></div>` : ''}
+    <button class="primary" data-ob="next">Next</button>`,
+  () => `<h1 class="ob-title">Your limits</h1>
+    <div class="card">
+      <label class="kv"><span>Monthly budget<small class="muted">What you allow yourself to spend in a month on food, transport, fun… not rent.</small></span>
+        <span><input class="field sm" id="obBudget" inputmode="decimal" value="${numStr(st.settings.budget)}"> €</span></label>
+      <label class="kv"><span>Weekly cash allowance<small class="muted">How much cash you allow yourself each week (Monday to Sunday).</small></span>
+        <span><input class="field sm" id="obWeekly" inputmode="decimal" value="${numStr(st.settings.weekly)}"> €</span></label>
+    </div>
+    <p class="muted small">You can change these later in ⚙︎ Settings.</p>
+    <button class="primary" data-ob="next">Next</button>`,
+  () => {
+    const past = sortExpenses(st.expenses.filter(e => e.pre));
+    return `<h1 class="ob-title">Already spent money this month?</h1>
+    <p class="muted">Add it so this month’s total is right. It won’t lower the money you just told us you have, because that money is already gone.</p>
+    ${past.length ? `<div class="card"><ul class="list">${past.map(entryRow).join('')}</ul></div>` : ''}
+    <button type="button" class="field btn" data-ob="past">+ Add something I already paid for</button>
+    <button class="primary" data-ob="next">${past.length ? 'Next' : 'Nothing to add, next'}</button>`;
+  },
+  () => `<h1 class="ob-title">How to use it</h1>
+    <p class="card pad small">🔒 Your data stays on this phone. Nothing is sent anywhere. Back it up in ⚙︎ Settings.</p>
+    <ol class="ob-list">
+      <li><b>Spent money?</b> Tap <b>+ Add spending</b> at the bottom, type the amount, pick what it was for, tap <b>Save</b>.</li>
+      <li><b>Didn’t plan it?</b> Tick <b>Impulse</b> before saving.</li>
+      <li><b>Mistake?</b> Tap the entry in the list to change or delete it.</li>
+      <li><b>Paid in rupees?</b> Pick <b>Indian bank</b>; it shows euros for you.</li>
+    </ol>
+    <h2>What the numbers mean</h2>
+    <ul class="ob-list">
+      <li><b>Left to spend this month:</b> budget minus this month’s spending (not rent).</li>
+      <li><b>Cash left this week:</b> only cash, Monday to Sunday.</li>
+      <li><b>Money you have now:</b> your setup amounts minus what you logged.</li>
+      <li><b>Tags:</b> “impulse” = you didn’t plan it. “paid before setup” = counts this month, but was already gone from your money.</li>
+    </ul>
+    <p class="muted small">Tap <b>?</b> at the top any time to see this again.</p>
+    <button class="primary" data-ob="done">${st.settings.onboarded ? 'Got it' : 'Start using Spend'}</button>`,
+];
+
+function renderOb() {
+  const isHelp = st.settings.onboarded;
+  $('obClose').style.visibility = isHelp ? '' : 'hidden';
+  $('obDots').hidden = isHelp;
+  $('obDots').innerHTML = OB_STEPS.map((_, i) => `<i class="${i === obStep ? 'on' : ''}"></i>`).join('');
+  $('obBack').style.visibility = obStep && !(st.settings.onboarded && obStep === OB_STEPS.length - 1) ? '' : 'hidden';
+  $('obBody').innerHTML = OB_STEPS[obStep]();
+}
+function readOb() { // save whatever the current step has inputs for
+  $('obBody').querySelectorAll('[data-acc]').forEach(i => { const n = parseNum(i.value); accOf(st, i.dataset.acc).start = isNaN(n) ? 0 : n; });
+  const r = parseAmount($('obRate')?.value ?? ''), b = parseAmount($('obBudget')?.value ?? ''), w = parseNum($('obWeekly')?.value ?? '');
+  if (r) st.settings.rate = r;
+  if (b) st.settings.budget = b;
+  if (w >= 0) st.settings.weekly = w;
+  save();
+}
+$('obBody').addEventListener('click', ev => {
+  const entry = ev.target.closest('.entry');
+  if (entry) return openForm(st.expenses.find(x => x.id === entry.dataset.id));
+  const act = ev.target.closest('[data-ob]')?.dataset.ob;
+  if (!act) return;
+  readOb();
+  if (act === 'next') { obStep++; renderOb(); scrollTo(0, 0); }
+  if (act === 'past') openForm(null, true);
+  if (act === 'done') { st.settings.onboarded = true; st.settings.since ??= today(); save(); render(); show('month'); }
+});
+$('obClose').addEventListener('click', () => show('month'));
+$('obBack').addEventListener('click', () => { readOb(); obStep--; renderOb(); });
+$('help').addEventListener('click', () => { obStep = OB_STEPS.length - 1; renderOb(); show('onboard'); });
+
 render();
+if (!st.settings.onboarded) { renderOb(); show('onboard'); }
 navigator.serviceWorker?.register('sw.js');
 </script>
 </body>

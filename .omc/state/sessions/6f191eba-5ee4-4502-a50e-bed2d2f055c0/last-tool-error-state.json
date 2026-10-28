@@ -1,0 +1,7 @@
+{
+  "tool_name": "mcp__Claude_Browser__browser_batch",
+  "tool_input_preview": "{\"actions\":[{\"name\":\"javascript_tool\",\"input\":{\"action\":\"javascript_exec\",\"tabId\":\"tab-2\",\"text\":\"location.reload(); 'ok'\"}},{\"name\":\"computer\",\"input\":{\"action\":\"wait\",\"duration\":1,\"tabId\":\"tab-2\"}},...",
+  "error": "[javascript_tool:javascript_exec] \"ok\"\n\n\nTab Context:\n- Executed on tabId: tab-2\n- Available tabs:\n  • tabId tab-2: \"Spend\" (\"http://localhost:8470/\")\n[computer:wait] waited 1s\n\n\nTab Context:\n- Executed on tabId: tab-2\n- Available tabs:\n  • tabId tab-2: \"Spend\" (\"http://localhost:8470/\")\n\nactions[2] (javascript_tool:javascript_exec) failed: javascript_tool failed: TypeError: Failed to execute 'getComputedStyle' on 'Window': parameter 1 is not of type 'Element'.\n    at <anonymous>:1:64 (2 complet...",
+  "timestamp": "2026-10-28T19:16:24.483Z",
+  "retry_count": 2
+}

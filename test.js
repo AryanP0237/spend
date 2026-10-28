@@ -20,18 +20,19 @@ st.expenses = [
   { id: 'd', amt: 2000, acc: 'inr', cat: 'c7', date: '2026-10-20', note: '', impulse: true, rate: 100 },
   { id: 'e', amt: 5, acc: 'cash', cat: 'c2', date: '2026-10-25', note: '', impulse: true }, // previous week
   { id: 'f', amt: 9, acc: 'cash', cat: 'c3', date: '2026-11-02', note: '', impulse: false }, // next month
+  { id: 'g', amt: 7, acc: 'cash', cat: 'c1', date: '2026-10-02', note: '', impulse: false, pre: true }, // paid before setup
 ];
 
 assert.equal(L.eur(st, st.expenses[3]), 20);
 const [cash, card, inr] = L.balances(st);
-assert.equal(cash.bal, 800 - 19.1 - 16 - 5 - 9);
+assert.equal(cash.bal, 800 - 19.1 - 16 - 5 - 9); // 'g' is pre: not subtracted
 assert.equal(card.bal, -450);
 assert.equal(inr.bal, 48000);
 
 const m = L.monthStats(st, '2026-10');
-assert.equal(m.total, 19.1 + 16 + 450 + 20 + 5);
-assert.equal(m.budgetSpent, 60.1); // rent excluded
-assert.equal(m.left, 639.9);
+assert.equal(m.total, 19.1 + 16 + 450 + 20 + 5 + 7);
+assert.equal(m.budgetSpent, 67.1); // rent excluded, pre included
+assert.equal(m.left, 632.9);
 assert.equal(m.impulse, 25);
 
 assert.deepEqual(L.weekCash(st, '2026-10-28'), { spent: 35.1, left: 14.9 });
@@ -45,7 +46,7 @@ assert.deepEqual([...back.st.expenses].sort((a, b) => a.id.localeCompare(b.id)),
 
 // Excel (Italian locale) re-save: semicolons, BOM, CRLF
 const excel = '﻿' + L.toCSV(st).replace(/,/g, ';').replace(/\n/g, '\r\n');
-assert.equal(L.fromCSV(excel.replace('"marca da bollo; ""16€"""', 'stamp')).st.expenses.length, 6);
+assert.equal(L.fromCSV(excel.replace('"marca da bollo; ""16€"""', 'stamp')).st.expenses.length, 7);
 
 // Bad rows are skipped, not imported
 const bad = L.fromCSV('type,date,account,category,amount\nexpense,28/10/2026,Cash,Groceries,5\nexpense,2026-10-28,Cash,Groceries,5');

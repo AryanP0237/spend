@@ -1,0 +1,69 @@
+{
+  "updatedAt": "2026-10-28T19:19:13.718Z",
+  "missions": [
+    {
+      "id": "session:6f191eba-5ee4-4502-a50e-bed2d2f055c0:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-10-28T19:09:00.030Z",
+      "updatedAt": "2026-10-28T19:19:13.718Z",
+      "status": "done",
+      "workerCount": 1,
+      "taskCounts": {
+        "total": 1,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 0,
+        "completed": 1,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "general-purpose:a98956f",
+          "role": "general-purpose",
+          "ownership": "a98956f7375c3fc65",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-10-28T19:19:13.718Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-start:a98956f7375c3fc65:2026-10-28T19:13:17.206Z",
+          "at": "2026-10-28T19:13:17.206Z",
+          "kind": "update",
+          "agent": "general-purpose:a98956f",
+          "detail": "started general-purpose:a98956f",
+          "sourceKey": "session-start:a98956f7375c3fc65"
+        },
+        {
+          "id": "session-stop:a98956f7375c3fc65:2026-10-28T19:15:42.563Z",
+          "at": "2026-10-28T19:15:42.563Z",
+          "kind": "completion",
+          "agent": "general-purpose:a98956f",
+          "detail": "completed",
+          "sourceKey": "session-stop:a98956f7375c3fc65"
+        },
+        {
+          "id": "session-start:a98956f7375c3fc65:2026-10-28T19:16:49.759Z",
+          "at": "2026-10-28T19:16:49.759Z",
+          "kind": "update",
+          "agent": "general-purpose:a98956f",
+          "detail": "started general-purpose:a98956f",
+          "sourceKey": "session-start:a98956f7375c3fc65"
+        },
+        {
+          "id": "session-stop:a98956f7375c3fc65:2026-10-28T19:19:13.718Z",
+          "at": "2026-10-28T19:19:13.718Z",
+          "kind": "completion",
+          "agent": "general-purpose:a98956f",
+          "detail": "completed",
+          "sourceKey": "session-stop:a98956f7375c3fc65"
+        }
+      ]
+    }
+  ]
+}

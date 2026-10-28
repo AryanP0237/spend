@@ -1,0 +1,330 @@
+{
+  "version": 1,
+  "jobId": "a8265fd0-9997-4af4-9a2f-f60ea09d4697",
+  "sessionId": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+  "scopeKey": "4db7084b57a2964d97849d3e23c7fedc0fd3c3055bb5c2fecdcf36496d241392",
+  "revision": 60,
+  "createdAt": "2026-10-28T18:57:29.970Z",
+  "updatedAt": "2026-10-28T18:58:01.851Z",
+  "producerGraceExpiresAt": "2026-10-28T18:57:59.971Z",
+  "bestEffortDeadlineAt": "2026-10-28T18:58:50.971Z",
+  "producers": {
+    "core": {
+      "state": "sealed",
+      "intentKey": "d02a7081c98ccf1c4b650a3cee2baa65c0b8ed699be2998adac47e01c9a83c56",
+      "payloadDigest": "d02a7081c98ccf1c4b650a3cee2baa65c0b8ed699be2998adac47e01c9a83c56",
+      "sealedAt": "2026-10-28T18:58:00.954Z",
+      "sealedBy": "recovery"
+    },
+    "wiki": {
+      "state": "no-op",
+      "sealedAt": "2026-10-28T18:57:29.994Z",
+      "sealedBy": "wiki-producer"
+    }
+  },
+  "actions": {
+    "foreground-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "063759d303b906ebcb90e203516ab37a1ef59aee8f02b8ece34185f4a7052c8b",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {},
+        "metrics": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "ended_at": "2026-10-28T18:58:00.156Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        }
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-10-28T18:58:00.039Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "c115126a-0ac5-4237-9e4a-bc520c8c0404",
+        "phase": "terminal",
+        "deadlineAt": "2026-10-28T18:58:09.973Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-10-28T18:58:00.944Z"
+    },
+    "wiki-capture": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 0,
+      "idempotencyKey": "45a585321052608f216e46e90f46068f60fd40e8cff6a9ef591c0b6271c97de8",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "completedAt": "2026-10-28T18:57:29.994Z"
+    },
+    "team-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "da31e66f7534dd42eabf8ae467b098f4b15e092746d3cff0f83deaa85dbc5608",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {},
+        "metrics": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "ended_at": "2026-10-28T18:58:00.156Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        }
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-10-28T18:58:00.980Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "2c65d2ea-735c-415a-8467-deb5ea1c8d9c",
+        "phase": "terminal",
+        "deadlineAt": "2026-10-28T18:58:09.973Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-10-28T18:58:01.139Z"
+    },
+    "python-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "7f44a73f506842256d417fbf846c863866bdd9eb6564bd85202da8ec05936d2a",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {},
+        "metrics": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "ended_at": "2026-10-28T18:58:00.156Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        }
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-10-28T18:58:01.156Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "2baea286-63cf-49e1-8943-67c64d91b577",
+        "phase": "terminal",
+        "deadlineAt": "2026-10-28T18:58:09.973Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-10-28T18:58:01.284Z"
+    },
+    "reply-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "36d919bf8cc3d2b36e1812e0851a2bd87d56051c40f4b110b816d369cc0d52b7",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-10-28T18:58:01.301Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "6af148fd-9362-4f92-9bc4-3299c655eed1",
+        "phase": "terminal",
+        "deadlineAt": "2026-10-28T18:58:09.973Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-10-28T18:58:01.421Z"
+    },
+    "callback": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "490b46e9c781838eba0215490ca16ab7ae820fc72f0072f47b1b41535b1fb0a3",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {},
+        "metrics": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "ended_at": "2026-10-28T18:58:00.156Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        }
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-10-28T18:58:01.439Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "baab4e32-ccaa-4eaa-94a2-0a581e1686a3",
+        "phase": "terminal",
+        "deadlineAt": "2026-10-28T18:58:09.973Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-10-28T18:58:01.559Z"
+    },
+    "notification": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "92b8b5750487c37a948b6eef23b681ff4d4fb48898df2a589ba2cb63314b0958",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {},
+        "metrics": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "ended_at": "2026-10-28T18:58:00.156Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        }
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-10-28T18:58:01.577Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "cc762e64-1cc6-46f3-8b83-757597bbc42f",
+        "phase": "terminal",
+        "deadlineAt": "2026-10-28T18:58:09.973Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-10-28T18:58:01.693Z"
+    },
+    "openclaw": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "387c1b824584fdf4dedaffdc047aa17540915bfae6db55f36cc8ccbe8522dce9",
+      "payload": {
+        "transcriptPath": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+        "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+        "reason": "other",
+        "input": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "transcript_path": "/Users/aryanpalshetkar0237/.claude/projects/-Users-aryanpalshetkar0237-expense-tracker/21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f.jsonl",
+          "cwd": "/Users/aryanpalshetkar0237/expense-tracker",
+          "prompt_id": "005ac17d-d4b0-4045-bed3-81963e031abe",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {},
+        "metrics": {
+          "session_id": "21aa2f63-5fbd-4f6d-a40f-d2b6642fe19f",
+          "ended_at": "2026-10-28T18:58:00.156Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        }
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-10-28T18:58:01.711Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "05e7fa11-f430-4e9d-92d6-e914c20ce449",
+        "phase": "terminal",
+        "deadlineAt": "2026-10-28T18:58:09.973Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-10-28T18:58:01.820Z"
+    }
+  },
+  "owner": null,
+  "phase": "complete",
+  "completion": {
+    "completedAt": "2026-10-28T18:58:01.836Z",
+    "terminalDigest": "dbfbb21c7c6ca97e10fafd7f1ce2c7be3312d2cee94bc2b131fa726e14a6c7ec",
+    "terminalRevision": 59
+  }
+}

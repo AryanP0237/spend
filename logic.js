@@ -11,7 +11,7 @@ const DEFAULT_STATE = () => ({
     .map((name, i) => ({ id: 'c' + i, name, noBudget: i === 0 })),
   // amt is in the account's currency; rate (INR per 1 EUR) only on INR entries
   expenses: [],
-  settings: { budget: 700, weekly: 50, rate: null },
+  settings: { budget: 700, weekly: 50, rate: null, onboarded: false },
 });
 
 const round2 = n => Math.round(n * 100) / 100;
@@ -28,8 +28,8 @@ const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')
 const addDays = (s, n) => { const d = new Date(s + 'T12:00'); d.setDate(d.getDate() + n); return ymd(d); };
 const weekStart = s => addDays(s, -((new Date(s + 'T12:00').getDay() + 6) % 7)); // Monday
 
-// balance in the account's own currency
-const balances = st => st.accounts.map(a => ({ ...a, bal: round2(a.start - sum(st.expenses.filter(e => e.acc === a.id), e => e.amt)) }));
+// balance in the account's own currency; "pre" entries were paid before the start balance was counted
+const balances = st => st.accounts.map(a => ({ ...a, bal: round2(a.start - sum(st.expenses.filter(e => e.acc === a.id && !e.pre), e => e.amt)) }));
 
 const outsideBudget = st => new Set(st.categories.filter(c => c.noBudget).map(c => c.id));
 
@@ -57,7 +57,7 @@ function weekCash(st, day) {
 const sortExpenses = list => [...list].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 
 // ---- CSV backup: one file holds accounts, categories, settings and expenses (by "type") ----
-const CSV_COLS = ['type', 'date', 'account', 'category', 'amount', 'currency', 'eur', 'rate', 'impulse', 'note', 'id'];
+const CSV_COLS = ['type', 'date', 'account', 'category', 'amount', 'currency', 'eur', 'rate', 'impulse', 'before_start', 'note', 'id'];
 
 function toCSV(st) {
   const q = v => /[",;\n\r]/.test(v = String(v ?? '')) ? `"${v.replace(/"/g, '""')}"` : v;
@@ -68,7 +68,7 @@ function toCSV(st) {
     ...sortExpenses(st.expenses).reverse().map(e => {
       const a = accOf(st, e.acc);
       return { type: 'expense', date: e.date, account: a?.name, category: st.categories.find(c => c.id === e.cat)?.name,
-        amount: e.amt, currency: a?.cur, eur: round2(eur(st, e)), rate: e.rate, impulse: e.impulse ? 'yes' : '', note: e.note, id: e.id };
+        amount: e.amt, currency: a?.cur, eur: round2(eur(st, e)), rate: e.rate, impulse: e.impulse ? 'yes' : '', before_start: e.pre ? 'yes' : '', note: e.note, id: e.id };
     }),
   ];
   return [CSV_COLS.join(','), ...rows.map(r => CSV_COLS.map(c => q(r[c])).join(','))].join('\n') + '\n';
@@ -123,7 +123,7 @@ function fromCSV(text) {
     const c = findOrAdd(st.categories, r.category, () => ({ id: 'k' + st.categories.length, name: r.category, noBudget: false }));
     const id = r.id && !ids.has(r.id) ? r.id : 'i' + i;
     ids.add(id);
-    st.expenses.push({ id, amt, acc: a.id, cat: c.id, date: r.date, note: r.note, impulse: r.impulse === 'yes', ...(a.cur === 'INR' && { rate }) });
+    st.expenses.push({ id, amt, acc: a.id, cat: c.id, date: r.date, note: r.note, impulse: r.impulse === 'yes', ...(r.before_start === 'yes' && { pre: true }), ...(a.cur === 'INR' && { rate }) });
   });
   return { st, skipped };
 }
