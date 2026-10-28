@@ -10,7 +10,9 @@ const DEFAULT_STATE = () => ({
     'Phone & data', 'Paperwork & fees', 'Study', 'Health', 'Other']
     .map((name, i) => ({ id: 'c' + i, name, noBudget: i === 0 })),
   // amt is in the account's currency; rate (INR per 1 EUR) only on INR entries
-  expenses: [],
+  expenses: [], // each may carry mt = last edit time (ms), used by sync
+  deleted: {}, // id -> time deleted, so a sync doesn't bring deleted entries back
+  metaMt: 0, // last edit of accounts/categories/budget, newest device wins
   settings: { budget: 700, weekly: 50, rate: null, onboarded: false },
 });
 
@@ -57,7 +59,7 @@ function weekCash(st, day) {
 const sortExpenses = list => [...list].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 
 // ---- CSV backup: one file holds accounts, categories, settings and expenses (by "type") ----
-const CSV_COLS = ['type', 'date', 'account', 'category', 'amount', 'currency', 'eur', 'rate', 'impulse', 'before_start', 'note', 'id'];
+const CSV_COLS = ['type', 'date', 'account', 'category', 'amount', 'currency', 'eur', 'rate', 'impulse', 'before_start', 'note', 'id', 'modified'];
 
 function toCSV(st) {
   const q = v => /[",;\n\r]/.test(v = String(v ?? '')) ? `"${v.replace(/"/g, '""')}"` : v;
@@ -65,10 +67,12 @@ function toCSV(st) {
     ...st.accounts.map(a => ({ type: 'account', account: a.name, amount: a.start, currency: a.cur, id: a.id })),
     ...st.categories.map(c => ({ type: 'category', category: c.name, note: c.noBudget ? 'outside budget' : '', id: c.id })),
     ...['budget', 'weekly', 'rate'].map(k => ({ type: 'setting', note: k, amount: st.settings[k] })),
+    { type: 'setting', note: 'meta_modified', amount: st.metaMt || 0 },
+    ...Object.entries(st.deleted || {}).map(([id, t]) => ({ type: 'deleted', id, modified: t })),
     ...sortExpenses(st.expenses).reverse().map(e => {
       const a = accOf(st, e.acc);
       return { type: 'expense', date: e.date, account: a?.name, category: st.categories.find(c => c.id === e.cat)?.name,
-        amount: e.amt, currency: a?.cur, eur: round2(eur(st, e)), rate: e.rate, impulse: e.impulse ? 'yes' : '', before_start: e.pre ? 'yes' : '', note: e.note, id: e.id };
+        amount: e.amt, currency: a?.cur, eur: round2(eur(st, e)), rate: e.rate, impulse: e.impulse ? 'yes' : '', before_start: e.pre ? 'yes' : '', note: e.note, id: e.id, modified: e.mt };
     }),
   ];
   return [CSV_COLS.join(','), ...rows.map(r => CSV_COLS.map(c => q(r[c])).join(','))].join('\n') + '\n';
@@ -111,7 +115,9 @@ function fromCSV(text) {
   for (const r of of('setting')) {
     const n = parseNum(r.amount);
     if (['budget', 'weekly', 'rate'].includes(r.note) && !isNaN(n)) st.settings[r.note] = n;
+    if (r.note === 'meta_modified' && n > 0) { st.metaMt = n; st.settings.onboarded = true; }
   }
+  for (const r of of('deleted')) if (r.id && +r.modified) st.deleted[r.id] = +r.modified;
   const findOrAdd = (list, name, make) => list.find(x => x.name === name) ?? (list.push(make()), list.at(-1));
   const ids = new Set();
   let skipped = 0;
@@ -123,7 +129,24 @@ function fromCSV(text) {
     const c = findOrAdd(st.categories, r.category, () => ({ id: 'k' + st.categories.length, name: r.category, noBudget: false }));
     const id = r.id && !ids.has(r.id) ? r.id : 'i' + i;
     ids.add(id);
-    st.expenses.push({ id, amt, acc: a.id, cat: c.id, date: r.date, note: r.note, impulse: r.impulse === 'yes', ...(r.before_start === 'yes' && { pre: true }), ...(a.cur === 'INR' && { rate }) });
+    st.expenses.push({ id, amt, acc: a.id, cat: c.id, date: r.date, note: r.note, impulse: r.impulse === 'yes', ...(r.before_start === 'yes' && { pre: true }), ...(a.cur === 'INR' && { rate }), ...(+r.modified && { mt: +r.modified }) });
   });
   return { st, skipped };
+}
+
+// Combine two copies of the data (this device + a file or Google Drive) without losing edits:
+// newest version of each expense wins, deletions win over older edits, newest accounts/budget win.
+function merge(a, b) {
+  const deleted = { ...a.deleted };
+  for (const [id, t] of Object.entries(b.deleted || {})) deleted[id] = Math.max(deleted[id] || 0, t);
+  const byId = new Map();
+  for (const e of [...a.expenses, ...b.expenses]) if (!byId.has(e.id) || (e.mt || 0) > (byId.get(e.id).mt || 0)) byId.set(e.id, e);
+  const meta = (b.metaMt || 0) > (a.metaMt || 0) ? b : a;
+  const synced = ['budget', 'weekly', 'rate', 'onboarded'].reduce((o, k) => (o[k] = meta.settings[k] ?? a.settings[k], o), {});
+  return {
+    ...a, accounts: meta.accounts, categories: meta.categories, metaMt: meta.metaMt || 0,
+    settings: { ...a.settings, ...synced, onboarded: !!(a.settings.onboarded || b.settings.onboarded) },
+    expenses: [...byId.values()].filter(e => !(deleted[e.id] >= (e.mt || 0))),
+    deleted,
+  };
 }

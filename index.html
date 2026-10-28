@@ -55,6 +55,7 @@ fieldset { border: 0; padding: 0; margin: 16px 0 0; display: flex; flex-wrap: wr
 .primary, .danger { width: 100%; min-height: 54px; border: 0; border-radius: 14px; font-weight: 600; margin-top: 20px; }
 .primary { background: var(--accent); color: var(--accent-fg); }
 .danger { background: none; color: var(--warn); margin-top: 8px; }
+.danger.link { color: var(--accent); }
 
 /* list */
 .card { background: var(--card); border-radius: 16px; border: 1px solid var(--line); }
@@ -102,6 +103,7 @@ dialog { width: 100%; max-width: 560px; height: 100%; max-height: none; margin: 
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 2; transform: translateX(-50%); background: var(--fg); color: var(--bg);
   padding: 10px 16px; border-radius: 12px; font-size: 15px; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
 .toast button { border: 0; background: none; color: inherit; font-weight: 700; text-decoration: underline; margin-left: 10px; min-height: 32px; }
+.sync-chip { display: block; margin: 0 0 10px; border: 0; background: none; color: var(--muted); font-size: 14px; min-height: 32px; padding: 0; }
 .nudge { width: 100%; text-align: left; margin-bottom: 10px; color: var(--accent); font-weight: 600; }
 [hidden] { display: none !important; }
 
@@ -114,6 +116,7 @@ dialog { width: 100%; max-width: 560px; height: 100%; max-height: none; margin: 
 .ob-list li { margin-bottom: 12px; }
 .kv small { display: block; }
 .kv > span:last-child { white-space: nowrap; }
+.row .field.btn { margin-top: 0; display: flex; align-items: center; justify-content: center; min-height: 56px; }
 .field.btn { margin-top: 10px; text-align: center; color: var(--accent); font-weight: 600; }
 </style>
 </head>
@@ -125,6 +128,7 @@ dialog { width: 100%; max-width: 560px; height: 100%; max-height: none; margin: 
     <h1 id="monthTitle"></h1>
     <span><button class="icon" id="next" aria-label="Next month">›</button><button class="icon" id="help" aria-label="How it works">?</button><button class="icon" id="gear" aria-label="Settings">⚙︎</button></span>
   </header>
+  <button class="sync-chip" id="syncChip" hidden></button>
   <button class="card pad nudge" id="nudge" hidden></button>
   <div class="card pad">
     <div class="muted small">Left to spend this month</div>
@@ -161,13 +165,21 @@ dialog { width: 100%; max-width: 560px; height: 100%; max-height: none; margin: 
     <div class="card" id="sCats"></div>
     <button type="button" class="danger" id="addCat">+ Add category</button>
     <button class="primary" value="save">Save</button>
-    <h2>Privacy and backup</h2>
-    <p class="muted small">Your spending is stored only on this phone. It is never sent anywhere and nobody else can see it. But if you lose your phone or delete the app, it’s gone, so save a backup now and then. <span id="lastBackup"></span></p>
-    <div class="row">
-      <button type="button" class="field" id="exportBtn">Save backup file</button>
-      <label class="field" style="text-align:center">Restore from backup<input type="file" id="importFile" accept=".csv,text/csv" hidden></label>
+    <h2 id="syncSec">Sync and backup</h2>
+    <p class="muted small">Your spending is stored on this device. Nobody else can see it. To use it on your iPhone <i>and</i> MacBook, or to keep it safe if you lose your phone, pick one:</p>
+    <div class="card pad" id="gCard">
+      <b>Google account</b> <span class="muted small">· syncs by itself</span>
+      <p class="muted small" id="gStatus"></p>
+      <button type="button" class="field btn" id="gBtn"></button>
     </div>
-    <p class="muted small">“Save backup file” opens the share menu: choose <b>Save to Files</b> (iCloud Drive). To restore, tap “Restore from backup” and pick that file.</p>
+    <div class="card pad" style="margin-top:10px">
+      <b>iCloud Drive file</b> <span class="muted small">· you tap to sync</span>
+      <p class="muted small">On each device: tap <b>Combine with my file</b> and pick <b>spend.csv</b> in iCloud Drive, then tap <b>Save my file</b> and replace it. The first time, just tap Save my file. <span id="lastBackup"></span></p>
+      <div class="row">
+        <label class="field btn">Combine with my file<input type="file" id="importFile" accept=".csv,text/csv" hidden></label>
+        <button type="button" class="field btn" id="exportBtn">Save my file</button>
+      </div>
+    </div>
   </form>
 </dialog>
 
@@ -208,7 +220,13 @@ const today = () => ymd(new Date());
 let st;
 try { st = JSON.parse(localStorage.getItem(KEY)) || DEFAULT_STATE(); }
 catch { localStorage.setItem(KEY + '.broken', localStorage.getItem(KEY)); st = DEFAULT_STATE(); alert('Saved data was unreadable; kept a copy and started fresh.'); }
-const save = () => localStorage.setItem(KEY, JSON.stringify(st));
+st.deleted ??= {};
+st.metaMt ??= (st.settings.onboarded ? 1 : 0); // a set-up device beats a brand-new one
+const persist = () => localStorage.setItem(KEY, JSON.stringify(st));
+const save = () => { persist(); gQueue(); };
+// accounts, categories and budget sync as one block; stamp it only when it really changed
+const metaSig = () => JSON.stringify([st.accounts, st.categories, st.settings.budget, st.settings.weekly]);
+const stampMeta = before => { if (metaSig() !== before) st.metaMt = Date.now(); };
 navigator.storage?.persist?.();
 
 let editing = null; // expense id being edited, or null for new
@@ -273,6 +291,7 @@ $('form').addEventListener('submit', ev => {
     if (!e.rate) return $('rate').focus(), toast('Enter the exchange rate');
     st.settings.rate = e.rate;
   }
+  e.mt = Date.now();
   st.settings.lastAcc = acc.id;
   st.expenses = editing ? st.expenses.map(x => x.id === editing ? e : x) : [...st.expenses, e];
   save(); render(); backTo();
@@ -284,8 +303,13 @@ $('del').addEventListener('click', () => {
   if (!btn.dataset.armed) { btn.dataset.armed = 1; btn.textContent = 'Tap again to delete'; return; }
   const gone = st.expenses.find(x => x.id === editing);
   st.expenses = st.expenses.filter(x => x.id !== editing);
+  st.deleted[editing] = Date.now();
   save(); render(); backTo();
-  toast('Deleted', () => { st.expenses.push(gone); save(); render(); if (!$('onboard').hidden) renderOb(); });
+  toast('Deleted', () => {
+    delete st.deleted[gone.id];
+    st.expenses.push({ ...gone, mt: Date.now() });
+    save(); render(); if (!$('onboard').hidden) renderOb();
+  });
 });
 $('plus').addEventListener('click', () => openForm());
 $('close').addEventListener('click', backTo);
@@ -317,7 +341,7 @@ function render() {
     $('weekSub').textContent = `of ${fmt(st.settings.weekly)} · cash only, resets Monday`;
   }
   const lb = st.settings.lastBackup ?? st.settings.since; // nudge 14 days after setup / last backup
-  $('nudge').hidden = !lb || lb > addDays(today(), -14);
+  $('nudge').hidden = !lb || lb > addDays(today(), -14) || st.settings.google;
   $('nudge').textContent = st.settings.lastBackup ? 'Your last backup was over 2 weeks ago. Tap to save a new one →' : 'You haven’t saved a backup yet. Tap to save one →';
   $('impTotal').textContent = fmt(s.impulse);
   $('impSub').textContent = s.total ? `unplanned, ${Math.round(s.impulse / s.total * 100)}% of this month` : 'things you didn’t plan';
@@ -357,7 +381,7 @@ function fillSettings() {
     <label class="chk"><input type="checkbox" name="budget" ${c.noBudget ? '' : 'checked'}> in budget</label></div>`).join('');
 }
 $('nudge').addEventListener('click', () => $('exportBtn').click());
-$('gear').addEventListener('click', () => { fillSettings(); $('settings').showModal(); });
+$('gear').addEventListener('click', () => { fillSettings(); gStatus(); if (G_CLIENT_ID) gLoad().catch(() => {}); $('settings').showModal(); });
 $('addCat').addEventListener('click', () => {
   $('sCats').insertAdjacentHTML('beforeend', `<div class="srow" data-id="c${Date.now().toString(36)}">
     <input class="field" name="name" placeholder="New category" aria-label="Category name">
@@ -366,6 +390,7 @@ $('addCat').addEventListener('click', () => {
 });
 $('settings').addEventListener('close', () => {
   if ($('settings').returnValue !== 'save') return;
+  const before = metaSig();
   const rows = id => [...$(id).children].map(r => ({ id: r.dataset.id, name: r.querySelector('[name=name]').value.trim(), el: r }));
   const b = parseNum($('sBudget').value), w = parseNum($('sWeekly').value);
   if (b > 0) st.settings.budget = b;
@@ -377,12 +402,12 @@ $('settings').addEventListener('close', () => {
   st.categories = rows('sCats').filter(r => r.name || st.categories.some(c => c.id === r.id)).map(r => ({
     id: r.id, name: r.name || st.categories.find(c => c.id === r.id).name, noBudget: !r.el.querySelector('[name=budget]').checked,
   }));
-  save(); render(); toast('Settings saved');
+  stampMeta(before); save(); render(); toast('Settings saved');
 });
 
 // ---- backup ----
 $('exportBtn').addEventListener('click', async () => {
-  const name = `spend-${today()}.csv`, file = new File([toCSV(st)], name, { type: 'text/csv' });
+  const name = 'spend.csv', file = new File([toCSV(st)], name, { type: 'text/csv' });
   try {
     if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file] }); // iPhone: Save to Files
     else Object.assign(document.createElement('a'), { href: URL.createObjectURL(file), download: name }).click();
@@ -393,12 +418,81 @@ $('importFile').addEventListener('change', async ev => {
   const f = ev.target.files[0]; ev.target.value = '';
   if (!f) return;
   try {
-    const { st: next, skipped } = fromCSV(await f.text());
-    if (!confirm(`Replace ALL current data with ${next.expenses.length} expenses from ${f.name}?` + (skipped ? `\n(${skipped} unreadable rows will be skipped)` : ''))) return;
-    st = { ...next, settings: { ...next.settings, lastBackup: st.settings.lastBackup, onboarded: true } };
-    save(); render(); fillSettings(); toast('Imported');
+    const { st: other, skipped } = fromCSV(await f.text());
+    st = merge(st, other);
+    synced();
+    toast(`Combined ✓ ${st.expenses.length} entries` + (skipped ? ` (${skipped} unreadable rows skipped)` : '') + '. Now tap Save my file.');
   } catch (err) { alert(err.message); }
 });
+// after any sync: store, redraw, and leave the walkthrough if the other device was already set up
+function synced() {
+  save(); render(); fillSettings();
+  if (st.settings.onboarded && !$('onboard').hidden) show('month');
+}
+
+// ---- Google Drive sync: a hidden app folder in your own Drive. Google's script loads only once you use it. ----
+const G_CLIENT_ID = '';
+const G_API = 'https://www.googleapis.com/drive/v3/files', G_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
+let gTok = (() => { try { return JSON.parse(localStorage.getItem('spend.gtoken')); } catch {} })(); // { t, exp }, ~1 hour
+const gOk = () => gTok?.exp > Date.now() + 60e3;
+let gBusy = false, gErr = '';
+function gLoad() {
+  if (window.google?.accounts || gLoad.p) return gLoad.p;
+  return gLoad.p = new Promise((ok, fail) => document.head.append(Object.assign(document.createElement('script'),
+    { src: 'https://accounts.google.com/gsi/client', onload: ok, onerror: () => { gLoad.p = null; fail(new Error('offline')); } })));
+}
+// must be called straight from a tap: Google opens its sign-in window
+function gSignIn() {
+  if (!window.google?.accounts) { gLoad().then(gStatus, gStatus); return toast('Connecting… tap again'); }
+  google.accounts.oauth2.initTokenClient({
+    client_id: G_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.appdata',
+    callback: r => {
+      if (r.error) { gErr = 'Google sign-in was cancelled.'; return gStatus(); }
+      gTok = { t: r.access_token, exp: Date.now() + r.expires_in * 1000 };
+      localStorage.setItem('spend.gtoken', JSON.stringify(gTok));
+      st.settings.google = true; gSync();
+    },
+    error_callback: () => { gErr = 'Google sign-in was closed.'; gStatus(); },
+  }).requestAccessToken({ prompt: st.settings.google ? '' : 'consent' });
+}
+async function gFetch(url, opts = {}) {
+  const r = await fetch(url, { ...opts, headers: { Authorization: 'Bearer ' + gTok.t, ...opts.headers } });
+  if (r.status === 401) { gTok = null; localStorage.removeItem('spend.gtoken'); throw new Error('Tap to sync again (Google needs you to confirm).'); }
+  if (!r.ok) throw new Error('Google Drive error ' + r.status);
+  return r;
+}
+// ponytail: last writer wins if two devices upload in the same second; fine for one person, add ETag checks if not
+async function gSync() {
+  if (!gOk() || gBusy) return gStatus();
+  gBusy = true; gErr = ''; gStatus();
+  try {
+    const q = encodeURIComponent("name='spend.csv'");
+    const { files } = await (await gFetch(`${G_API}?spaces=appDataFolder&q=${q}&fields=files(id)`)).json();
+    let id = files[0]?.id;
+    if (id) st = merge(st, fromCSV(await (await gFetch(`${G_API}/${id}?alt=media`)).text()).st);
+    if (!id) id = (await (await gFetch(G_API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'spend.csv', parents: ['appDataFolder'] }) })).json()).id;
+    await gFetch(`${G_UPLOAD}/${id}?uploadType=media`, { method: 'PATCH', headers: { 'Content-Type': 'text/csv' }, body: toCSV(st) });
+    st.settings.gLast = Date.now(); st.settings.lastBackup = today();
+    persist(); render(); if (st.settings.onboarded && !$('onboard').hidden) show('month');
+  } catch (err) { gErr = navigator.onLine ? err.message : 'Offline. Will sync when you’re back online.'; }
+  gBusy = false; gStatus();
+}
+function gQueue() { if (st.settings.google && gOk()) { clearTimeout(gQueue.t); gQueue.t = setTimeout(gSync, 1500); } }
+function gStatus() {
+  const on = st.settings.google, ago = st.settings.gLast ? Math.round((Date.now() - st.settings.gLast) / 60000) : null;
+  const when = ago === null ? 'not yet' : ago < 1 ? 'just now' : ago < 60 ? `${ago} min ago` : new Date(st.settings.gLast).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const msg = gBusy ? 'Syncing…' : gErr || (on ? `Synced ${when}.` : 'Saves to a hidden folder in your own Google Drive. Sign in with the same Google account on each device.');
+  $('gStatus').textContent = msg;
+  $('gBtn').textContent = !on ? 'Connect Google account' : gOk() ? 'Sync now' : 'Tap to sync';
+  $('syncChip').hidden = !on;
+  $('syncChip').textContent = gBusy ? '☁︎ Syncing…' : gErr ? '☁︎ ' + gErr : gOk() ? `☁︎ Synced ${when}` : '☁︎ Tap to sync with Google';
+}
+$('gBtn').addEventListener('click', () => gOk() ? gSync() : gSignIn());
+$('syncChip').addEventListener('click', () => gOk() ? gSync() : gSignIn());
+$('gCard').hidden = !G_CLIENT_ID;
+if (st.settings.google) { gLoad().catch(() => {}); gSync(); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && st.settings.google) gSync(); });
 $('entries').addEventListener('click', ev => {
   const b = ev.target.closest('.entry');
   if (b) openForm(st.expenses.find(x => x.id === b.dataset.id));
@@ -415,7 +509,8 @@ const OB_STEPS = [
       <li>Everything stays on this phone. No account, no login.</li>
     </ul>
     <p class="muted small">Setup takes about a minute.</p>
-    <button class="primary" data-ob="next">Let’s set it up</button>`,
+    <button class="primary" data-ob="next">Let’s set it up</button>
+    <button type="button" class="danger link" data-ob="sync">I already use Spend on another device</button>`,
   () => `<h1 class="ob-title">How much money do you have right now?</h1>
     <p class="muted">Count the cash in your wallet and check your banking apps. Type 0 if you don’t use one.</p>
     <div class="card">${st.accounts.map(a => `<label class="kv"><span>${esc(a.name)}</span>
@@ -468,12 +563,13 @@ function renderOb() {
   $('obBody').innerHTML = OB_STEPS[obStep]();
 }
 function readOb() { // save whatever the current step has inputs for
+  const before = metaSig();
   $('obBody').querySelectorAll('[data-acc]').forEach(i => { const n = parseNum(i.value); accOf(st, i.dataset.acc).start = isNaN(n) ? 0 : n; });
   const r = parseAmount($('obRate')?.value ?? ''), b = parseAmount($('obBudget')?.value ?? ''), w = parseNum($('obWeekly')?.value ?? '');
   if (r) st.settings.rate = r;
   if (b) st.settings.budget = b;
   if (w >= 0) st.settings.weekly = w;
-  save();
+  stampMeta(before); save();
 }
 $('obBody').addEventListener('click', ev => {
   const entry = ev.target.closest('.entry');
@@ -483,6 +579,7 @@ $('obBody').addEventListener('click', ev => {
   readOb();
   if (act === 'next') { obStep++; renderOb(); scrollTo(0, 0); }
   if (act === 'past') openForm(null, true);
+  if (act === 'sync') { $('gear').click(); $('syncSec').scrollIntoView(); }
   if (act === 'done') { st.settings.onboarded = true; st.settings.since ??= today(); save(); render(); show('month'); }
 });
 $('obClose').addEventListener('click', () => show('month'));
