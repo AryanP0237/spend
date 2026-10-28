@@ -431,7 +431,7 @@ function synced() {
 }
 
 // ---- Google Drive sync: a hidden app folder in your own Drive. Google's script loads only once you use it. ----
-const G_CLIENT_ID = '';
+const G_CLIENT_ID = '18745464844-fk8mnl5k4j0k3h8ekt2a5e22ock3mqsn.apps.googleusercontent.com'; // public ID, Google Cloud project spend-513019
 const G_API = 'https://www.googleapis.com/drive/v3/files', G_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
 let gTok = (() => { try { return JSON.parse(localStorage.getItem('spend.gtoken')); } catch {} })(); // { t, exp }, ~1 hour
 const gOk = () => gTok?.exp > Date.now() + 60e3;
